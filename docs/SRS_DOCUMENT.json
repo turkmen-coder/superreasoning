@@ -1,0 +1,419 @@
+{
+  "srs": {
+    "metadata": {
+      "title": "Super Reasoning v3.2.0 — Software Requirements Specification",
+      "standard": "IEEE 830-1998",
+      "version": "1.0.0",
+      "date": "2026-02-23",
+      "author": "Cascade AI Analysis Engine",
+      "status": "DRAFT",
+      "frameworks_applied": ["IEEE 830", "MoSCoW", "Gherkin BDD", "TAG"]
+    },
+    "1_introduction": {
+      "1.1_purpose": "Bu SRS, Super Reasoning Master Prompt Generator platformunun fonksiyonel ve non-fonksiyonel gereksinimlerini IEEE 830 standardına uygun olarak tanımlar.",
+      "1.2_scope": "Platform, kullanıcı girdilerinden yüksek kaliteli LLM promptları üreten, zenginleştiren ve optimize eden bir web uygulamasıdır. 8 LLM provider, 12 prompt engineering tekniği, genetik optimizasyon ve otonom agent desteği sunar.",
+      "1.3_definitions": {
+        "Master Prompt": "Kullanıcı niyetinden derlenen, LLM'e gönderilmeye hazır yapılandırılmış prompt paketi",
+        "Brain": "Otonom analiz ve zenginleştirme yapan backend servisi (9 operasyon)",
+        "Agent": "OpenAI Agents SDK tabanlı otonom görev yürütücü (gpt-4o-mini)",
+        "Enrichment": "Prompt kütüphanesinden otomatik tamamlama ve iyileştirme (fast/deep/agent)",
+        "Genetik Lab": "Evrimsel algoritma ile prompt optimizasyonu (mutasyon/crossover)",
+        "Judge Ensemble": "Çoklu değerlendirici ile prompt kalite skorlama",
+        "CoT": "Chain-of-Thought — düşünce zinciri görselleştirme",
+        "RAG": "Retrieval Augmented Generation — bilgi destekli üretim"
+      },
+      "1.4_references": [
+        "IEEE 830-1998 Recommended Practice for SRS",
+        "OWASP API Security Top 10 (2023)",
+        "dair-ai/Prompt-Engineering-Guide",
+        "OpenAI Agents SDK v0.4.10 Documentation",
+        "Anthropic Claude Agent SDK v0.2.42",
+        "Google ADK v0.3.0"
+      ]
+    },
+    "2_overall_description": {
+      "2.1_product_perspective": {
+        "system_type": "Web-based SaaS Application",
+        "architecture": "Monolithic (Express.js v5 backend + React v19 frontend)",
+        "deployment": "VPS (Hostinger srv1327766.hstgr.cloud) + Nginx reverse proxy + PM2 + Let's Encrypt SSL",
+        "domain": "https://neomagic.org",
+        "database": "PostgreSQL (optional) + In-memory fallback",
+        "vector_store": "zvec HNSW (optional) + In-memory fallback",
+        "external_interfaces": [
+          {"name": "OpenAI API", "usage": "GPT-4o-mini, Agents SDK", "required": true},
+          {"name": "Anthropic API", "usage": "Claude models", "required": false},
+          {"name": "Google AI", "usage": "Gemini models + ADK", "required": false},
+          {"name": "Groq API", "usage": "Fast inference (default provider)", "required": false},
+          {"name": "DeepSeek API", "usage": "DeepSeek models", "required": false},
+          {"name": "HuggingFace API", "usage": "Open-source models", "required": false},
+          {"name": "OpenRouter API", "usage": "Multi-model routing", "required": false},
+          {"name": "Stripe API", "usage": "Payment processing", "required": false},
+          {"name": "Supabase", "usage": "Auth + user management (planned)", "required": false}
+        ]
+      },
+      "2.2_product_functions_summary": {
+        "total_components": 126,
+        "total_services": 84,
+        "total_server_files": 141,
+        "total_test_files": 14,
+        "total_loc_estimate": "44000+",
+        "supported_languages": ["Turkish", "English"],
+        "prompt_corpus_size": 10070
+      },
+      "2.3_user_classes": [
+        {"role": "viewer", "plan": "free", "permissions": ["read prompts", "view analytics"]},
+        {"role": "editor", "plan": "pro", "permissions": ["create/edit prompts", "use enrichment", "use agent"]},
+        {"role": "admin", "plan": "team", "permissions": ["all editor + user management + security scanner + audit logs"]},
+        {"role": "owner", "plan": "team", "permissions": ["all admin + billing + org settings + delete org"]}
+      ],
+      "2.4_constraints": [
+        "OpenAI API rate limits (TPM/RPM per tier)",
+        "VPS resource limits (CPU/RAM/Disk)",
+        "Bundle size must be optimized (<500KB target per chunk)",
+        "Supabase auth currently bypassed — security gap",
+        "Python runtime required for ftfy text encoding fix"
+      ],
+      "2.5_assumptions": [
+        "Users have modern browsers (Chrome 90+, Firefox 90+, Safari 15+)",
+        "VPS has Node.js 18+ and Python 3.8+ installed",
+        "At least one LLM API key is configured",
+        "Internet connectivity for external API calls"
+      ]
+    },
+    "3_specific_requirements": {
+      "3.1_functional_requirements": [
+        {
+          "id": "FR-001",
+          "name": "Master Prompt Generation",
+          "priority": "MUST",
+          "description": "Kullanıcı intent'inden yapılandırılmış master prompt üretme",
+          "endpoint": "POST /v1/generate",
+          "inputs": {
+            "intent": "string (required, max 50000 chars)",
+            "framework": "enum: AUTO|KERNEL|CO_STAR|RISEN|RTF|BAB|TAG|CARE",
+            "domainId": "string (default: 'auto')",
+            "provider": "enum: groq|gemini|huggingface|claude|claude-opus|openrouter|deepseek|openai|ollama|auto",
+            "language": "enum: tr|en",
+            "contextRules": "object (optional)",
+            "enrichment": "object {mode, autoApply, maxIterations, targetScore, maxTokenBudget}"
+          },
+          "outputs": {
+            "masterPrompt": "string — compiled prompt in imperative mood",
+            "reasoning": "string — 2-4 sentence compilation logic",
+            "intent": "string — extracted user intent",
+            "framework": "string — selected framework",
+            "domainId": "string — detected domain",
+            "enrichment": "object (optional) — enrichment results if requested"
+          },
+          "gherkin": [
+            "Feature: Master Prompt Generation",
+            "  Scenario: Successful prompt generation",
+            "    Given a user provides intent 'Write a marketing email for SaaS product'",
+            "    And selects framework 'CO_STAR' and provider 'groq'",
+            "    When POST /v1/generate is called",
+            "    Then response status is 200",
+            "    And response contains 'masterPrompt' as non-empty string",
+            "    And response contains 'reasoning' as non-empty string",
+            "    And masterPrompt uses imperative mood sentences",
+            "    And an audit log entry is created with action 'generate'",
+            "",
+            "  Scenario: Missing intent",
+            "    Given no intent is provided",
+            "    When POST /v1/generate is called",
+            "    Then response status is 400",
+            "    And error message is 'intent (string) required'"
+          ]
+        },
+        {
+          "id": "FR-002",
+          "name": "Prompt Enrichment",
+          "priority": "MUST",
+          "description": "Master prompt'u kütüphaneden zenginleştirme (fast/deep/agent)",
+          "endpoint": "POST /v1/enrich",
+          "modes": {
+            "fast": "Quick library search + gap fill",
+            "deep": "Comprehensive analysis + multi-prompt integration",
+            "agent": "OpenAI Agent SDK driven iterative enrichment with judge scoring"
+          },
+          "gherkin": [
+            "Feature: Prompt Enrichment",
+            "  Scenario: Fast enrichment",
+            "    Given a master prompt 'Analyze customer feedback and generate insights'",
+            "    When POST /v1/enrich is called with mode 'fast'",
+            "    Then response contains 'enrichedPrompt' with integrated library prompts",
+            "    And metrics.ambiguityScoreAfter < metrics.ambiguityScoreBefore",
+            "    And metrics.promptsIntegrated >= 0",
+            "",
+            "  Scenario: Agent enrichment",
+            "    Given a master prompt exists",
+            "    When POST /v1/enrich is called with mode 'agent'",
+            "    Then agent iterates up to maxIterations times",
+            "    And judge score improves toward targetScore",
+            "    And agentMetrics.iterations is returned"
+          ]
+        },
+        {
+          "id": "FR-003",
+          "name": "Brain Service",
+          "priority": "MUST",
+          "description": "Otonom analiz ve çoklu operasyon yürütme",
+          "endpoint": "POST /v1/brain/execute",
+          "operations": [
+            "analyze_intent — Domain ve framework önerisi",
+            "enrich_prompt — Prompt zenginleştirme",
+            "enhance_prompt — Prompt iyileştirme",
+            "prompt_analysis — Detaylı prompt analizi",
+            "prompt_transform — Prompt dönüşümü",
+            "fix_text — Metin kodlama düzeltme (ftfy)",
+            "quality_suite — Kalite değerlendirme paketi",
+            "version_history — Versiyon geçmişi",
+            "orchestrate — Çoklu operasyon orkestrasyon"
+          ],
+          "gherkin": [
+            "Feature: Brain Analysis",
+            "  Scenario: Intent analysis",
+            "    Given user prompt 'E-ticaret sitesi için ürün açıklaması yaz'",
+            "    When brain/execute is called with operation 'analyze_intent'",
+            "    Then result contains domain suggestion (e.g., 'ecommerce')",
+            "    And result contains framework suggestion",
+            "    And result contains reasoning in Turkish"
+          ]
+        },
+        {
+          "id": "FR-004",
+          "name": "Agent Execution",
+          "priority": "MUST",
+          "description": "OpenAI Agents SDK ile otonom prompt görevleri",
+          "endpoint": "POST /v1/agent/run",
+          "model": "gpt-4o-mini",
+          "tools": ["search_prompts", "get_prompt", "list_categories", "recommend_prompts", "enrich_prompt", "analyze_prompt_text", "parse_prompt", "extract_variables", "transform_prompt"],
+          "gherkin": [
+            "Feature: Agent Execution",
+            "  Scenario: Run agent query",
+            "    Given query 'Find the best prompt for code review'",
+            "    When POST /v1/agent/run is called",
+            "    Then agent searches prompt library",
+            "    And returns relevant answer with tool call history",
+            "",
+            "  Scenario: Missing API key",
+            "    Given OPENAI_API_KEY is not configured",
+            "    When POST /v1/agent/run is called",
+            "    Then response status is 503",
+            "    And error code is 'OPENAI_KEY_MISSING'"
+          ]
+        },
+        {
+          "id": "FR-005",
+          "name": "Prompt Library",
+          "priority": "MUST",
+          "description": "Prompt CRUD + versiyonlama + diff",
+          "endpoints": [
+            "GET /v1/prompts — List all prompts",
+            "GET /v1/prompts/:id — Get single prompt",
+            "POST /v1/prompts — Save prompt",
+            "DELETE /v1/prompts/:id — Delete prompt (admin+)",
+            "GET /v1/prompts/:id/versions — List versions",
+            "GET /v1/prompts/:id/diff?v1=x&v2=y — Version diff"
+          ]
+        },
+        {
+          "id": "FR-006",
+          "name": "Semantic Search",
+          "priority": "SHOULD",
+          "description": "Vektör embedding tabanlı semantik prompt arama",
+          "endpoint": "POST /v1/prompts/semantic-search",
+          "backend": "zvec HNSW or in-memory cosine similarity"
+        },
+        {
+          "id": "FR-007",
+          "name": "Quality Suite",
+          "priority": "SHOULD",
+          "description": "Judge ensemble + lint + budget analysis",
+          "components": ["judgeEnsemble.ts (39KB)", "promptLint.ts (10KB)", "budgetOptimizer.ts (5KB)"]
+        },
+        {
+          "id": "FR-008",
+          "name": "Genetic Optimization",
+          "priority": "SHOULD",
+          "description": "Evrimsel algoritma ile prompt optimizasyonu",
+          "components": ["geneticAlgorithm.ts (21KB)", "geneticPrompts.ts (15KB)"]
+        },
+        {
+          "id": "FR-009",
+          "name": "RAG Techniques Dashboard",
+          "priority": "SHOULD",
+          "description": "34 gelişmiş RAG stratejisi görselleştirme ve uygulama"
+        },
+        {
+          "id": "FR-010",
+          "name": "RAGFlow Integration",
+          "priority": "COULD",
+          "description": "Doküman işleme pipeline entegrasyonu"
+        },
+        {
+          "id": "FR-011",
+          "name": "A/B Testing",
+          "priority": "COULD",
+          "description": "Prompt karşılaştırma ve performans analizi"
+        },
+        {
+          "id": "FR-012",
+          "name": "Vibe Coding",
+          "priority": "COULD",
+          "description": "Doğal dil → kod prompt dönüşümü"
+        },
+        {
+          "id": "FR-013",
+          "name": "CoT Visualizer",
+          "priority": "COULD",
+          "description": "Chain-of-Thought düşünce zinciri görselleştirme"
+        },
+        {
+          "id": "FR-014",
+          "name": "Export Formats",
+          "priority": "SHOULD",
+          "description": "PDF/Word/Notion/JSON/Markdown export"
+        },
+        {
+          "id": "FR-015",
+          "name": "Real-time Collaboration",
+          "priority": "COULD",
+          "description": "WebSocket tabanlı eş zamanlı düzenleme"
+        },
+        {
+          "id": "FR-016",
+          "name": "Multi-language (i18n)",
+          "priority": "MUST",
+          "description": "Türkçe ve İngilizce tam destek"
+        },
+        {
+          "id": "FR-017",
+          "name": "Auto-complete",
+          "priority": "SHOULD",
+          "description": "Prompt yazarken otomatik tamamlama önerileri"
+        },
+        {
+          "id": "FR-018",
+          "name": "Security Scanner",
+          "priority": "SHOULD",
+          "description": "Adversarial test ve güvenlik taraması"
+        },
+        {
+          "id": "FR-019",
+          "name": "Text Encoding Fix",
+          "priority": "COULD",
+          "description": "python-ftfy ile metin kodlama düzeltme"
+        },
+        {
+          "id": "FR-020",
+          "name": "Audit Logging",
+          "priority": "MUST",
+          "description": "Tüm aksiyonların kayıt altına alınması (GDPR uyumlu PII redaction)"
+        }
+      ],
+      "3.2_non_functional_requirements": [
+        {
+          "id": "NFR-001",
+          "category": "Performance",
+          "requirements": {
+            "api_response_p95": "<2000ms",
+            "bundle_size_target": "<500KB per chunk",
+            "concurrent_users": "50+",
+            "prompt_corpus_load": "<5s for 10K prompts"
+          }
+        },
+        {
+          "id": "NFR-002",
+          "category": "Security",
+          "requirements": {
+            "authentication": "JWT (Supabase HS256) + API Key (BYOK/Managed)",
+            "authorization": "RBAC with 4-tier hierarchy (owner > admin > editor > viewer)",
+            "headers": "CSP, HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff",
+            "data_protection": "PII redaction (email, phone, CC, SSN, TC kimlik, IP)",
+            "key_security": "Timing-safe comparison, key masking in logs/responses",
+            "rate_limiting": "Per-IP (60/min) + Per-Org (100-300/min by plan)"
+          }
+        },
+        {
+          "id": "NFR-003",
+          "category": "Reliability",
+          "requirements": {
+            "uptime": ">99.5%",
+            "graceful_degradation": "Vector store fallback, enrichment fallback, DB optional",
+            "error_handling": "Operational vs non-operational error classification"
+          }
+        },
+        {
+          "id": "NFR-004",
+          "category": "Maintainability",
+          "requirements": {
+            "test_coverage_target": ">60%",
+            "code_style": "ESLint + Prettier enforced",
+            "type_safety": "TypeScript strict mode"
+          }
+        }
+      ]
+    },
+    "4_risk_assessment": [
+      {"id": "R1", "risk": "Auth bypass — tüm kullanıcılar admin", "probability": "HIGH", "impact": "CRITICAL", "score": 9, "mitigation": "Supabase kurulumu veya alternatif auth implementasyonu"},
+      {"id": "R2", "risk": "VITE_OPENAI_API_KEY frontend'de expose", "probability": "MEDIUM", "impact": "CRITICAL", "score": 8, "mitigation": "Frontend .env'den kaldır, yalnızca backend kullan"},
+      {"id": "R3", "risk": "Single point of failure (tek VPS)", "probability": "HIGH", "impact": "HIGH", "score": 7, "mitigation": "Backup VPS + health monitoring + auto-restart"},
+      {"id": "R4", "risk": "Test coverage ~4% — regresyon riski", "probability": "HIGH", "impact": "HIGH", "score": 7, "mitigation": "Kritik yol testleri yazma (generate, enrich, agent, brain)"},
+      {"id": "R5", "risk": "Bundle boyutu 1.1MB — yavaş yükleme", "probability": "HIGH", "impact": "MEDIUM", "score": 6, "mitigation": "React.lazy() + route-based code splitting"},
+      {"id": "R6", "risk": "Rate limiting bypass (auth bypass modunda)", "probability": "MEDIUM", "impact": "HIGH", "score": 6, "mitigation": "IP-based rate limiting güçlendirme"},
+      {"id": "R7", "risk": "PM2 config kaybolması (reboot)", "probability": "MEDIUM", "impact": "MEDIUM", "score": 5, "mitigation": "ecosystem.config.js + pm2 startup systemd"}
+    ],
+    "5_moscow_prioritization": {
+      "MUST": [
+        "M1: Auth sistemi düzeltme (Supabase veya alternatif JWT)",
+        "M2: VITE_OPENAI_API_KEY frontend'den kaldırma",
+        "M3: PM2 ecosystem.config.js oluşturma",
+        "M4: Nginx config'i kod deposuna ekleme"
+      ],
+      "SHOULD": [
+        "S1: Code splitting (React.lazy + route-based)",
+        "S2: Kritik yol testleri (generate, enrich, agent, brain)",
+        "S3: Health check monitoring + alerting",
+        "S4: Python bağımlılıkları kurma (ftfy)"
+      ],
+      "COULD": [
+        "C1: PostgreSQL + pgvector kurulumu",
+        "C2: OpenTelemetry dashboard (Grafana/Jaeger)",
+        "C3: CI/CD pipeline (GitHub Actions)",
+        "C4: Rate limiting metrikleri (Prometheus)"
+      ],
+      "WONT": [
+        "W1: Multi-region deployment",
+        "W2: Kubernetes migration",
+        "W3: Custom LLM fine-tuning"
+      ]
+    },
+    "6_kpi_targets": {
+      "technical": {
+        "test_coverage": {"current": "~4%", "target_3m": ">60%"},
+        "bundle_size": {"current": "1.1MB", "target_3m": "<500KB"},
+        "api_p95": {"current": "unmeasured", "target_3m": "<2000ms"},
+        "uptime": {"current": "manual", "target_3m": ">99.5%"},
+        "error_rate": {"current": "unmeasured", "target_3m": "<1%"},
+        "mttr": {"current": "~30min", "target_3m": "<10min"}
+      },
+      "business": {
+        "dau": {"current": "untracked", "target_3m": "start tracking"},
+        "prompts_per_day": {"current": "untracked", "target_3m": "start tracking"},
+        "enrichment_usage": {"current": "untracked", "target_3m": ">30%"},
+        "avg_quality_score": {"current": "untracked", "target_3m": ">75/100"}
+      }
+    },
+    "7_health_score": {
+      "overall": "6.5/10",
+      "breakdown": {
+        "functionality": "8/10",
+        "security": "4/10",
+        "testing": "2/10",
+        "deployment": "6/10",
+        "code_quality": "8/10",
+        "documentation": "7/10"
+      }
+    }
+  }
+}

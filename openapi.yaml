@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: Super Reasoning Prompt-as-Code API
+  description: |
+    Promptları kod gibi versionlayıp CI/CD'ye entegre edebilen API.
+    Master prompt üretimi (Groq/Gemini/HuggingFace/Claude/OpenRouter) ve prompt CRUD + versioning.
+    OWASP uyumlu API key doğrulama (x-api-key header) ve rate limiting.
+  version: 2.0.0
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:4000
+    description: Yerel API
+  - url: https://api.example.com/v1
+    description: Production (Railway/Render)
+
+paths:
+  /v1/auth/validate:
+    post:
+      summary: API key doğrula (BYOK / Managed)
+      operationId: validateApiKey
+      tags: [Auth]
+      description: |
+        x-api-key ile key geçerliliği ve limit bilgisi döner.
+        **401** geçersiz key, **429** limit aşıldı (rateLimitExceeded: true).
+        OWASP: Key değeri yanıtta asla düz metin dönmez.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                x-api-key: { type: string, description: "Opsiyonel; header'da da gönderilebilir" }
+      parameters:
+        - name: x-api-key
+          in: header
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Key geçerli
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid: { type: boolean }
+                  mode: { type: string, enum: [byok, managed] }
+                  orgId: { type: string, format: uuid }
+                  plan: { type: string, enum: [free, pro, team] }
+        '401':
+          description: Geçersiz veya eksik API key
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          description: Rate limit aşıldı
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Error' }
+                  - type: object
+                    properties:
+                      rateLimitExceeded: { type: boolean }
+
+  /v1/orgs/{orgId}/prompts:
+    get:
+      summary: Tenant (org) promptlarını listele
+      operationId: listOrgPrompts
+      tags: [Prompts, Tenants]
+      description: Tenant izolasyonu; sadece ilgili org_id'nin promptları döner.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: version
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Prompt listesi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompts:
+                    type: array
+                    items: { $ref: '#/components/schemas/StoredPrompt' }
+        '401':
+          description: Geçersiz API key
+        '403':
+          description: Bu org'a erişim yetkisi yok
+
+  /v1/health:
+    get:
+      summary: Sağlık kontrolü
+      operationId: getHealth
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: super-reasoning-api }
+
+  /v1/generate:
+    post:
+      summary: Master prompt üret (alias /prompt)
+      operationId: generatePrompt
+      tags: [Generate]
+      description: |
+        Niyet ve konfigürasyon ile master prompt üretir.
+        **Auth:** `x-api-key` header zorunlu (API key doğrulaması).
+        **Rate Limit:** Plan bazlı (Free: 10/dk, Pro: 100/dk). 429 dönerse `Retry-After` header'a bakın.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: x-api-key
+          in: header
+          required: true
+          schema: { type: string, format: api-key }
+          description: API key (OWASP — tarayıcıda saklamayın)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+      responses:
+        '200':
+          description: Üretilen master prompt
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+              description: Dakika başına izin verilen istek
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+              description: Kalan istek hakkı
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptResponse'
+        '400':
+          description: Geçersiz istek (örn. intent eksik)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Geçersiz veya eksik API key
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          description: Rate limit aşıldı
+          headers:
+            Retry-After:
+              schema: { type: integer }
+              description: Saniye cinsinden bekleme süresi
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Üretim hatası
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /v1/prompts:
+    get:
+      summary: Tüm promptları listele
+      operationId: listPrompts
+      tags: [Prompts]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Prompt listesi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StoredPrompt'
+        '401':
+          description: Geçersiz API key
+    post:
+      summary: Prompt kaydet (version ile)
+      operationId: savePrompt
+      tags: [Prompts]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavePromptRequest'
+      responses:
+        '201':
+          description: Kaydedilen prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoredPrompt'
+        '400':
+          description: id, version veya masterPrompt eksik
+        '401':
+          description: Geçersiz API key
+
+  /v1/prompts/{id}:
+    get:
+      summary: Tek prompt getir
+      operationId: getPrompt
+      tags: [Prompts]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: version
+          in: query
+          schema: { type: string }
+          description: Belirtilmezse en güncel version
+      responses:
+        '200':
+          description: Prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoredPrompt'
+        '401':
+          description: Geçersiz API key
+        '404':
+          description: Bulunamadı
+    delete:
+      summary: Prompt sil
+      operationId: deletePrompt
+      tags: [Prompts]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: version
+          in: query
+          schema: { type: string }
+          description: Belirtilmezse tüm versionlar silinir
+      responses:
+        '204':
+          description: Silindi
+        '401':
+          description: Geçersiz API key
+        '404':
+          description: Bulunamadı
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key — OWASP uyumlu; tarayıcıda saklamayın. Sunucu tarafında hash ile doğrulanır.
+
+  schemas:
+    GenerateRequest:
+      type: object
+      required: [intent]
+      properties:
+        intent:
+          type: string
+          description: Kullanıcı niyeti
+          maxLength: 50000
+        framework:
+          type: string
+          enum: [AUTO, KERNEL, CO_STAR, RISEN, RTF, BAB, TAG, CARE]
+          default: AUTO
+        domainId:
+          type: string
+          default: auto
+        provider:
+          type: string
+          enum: [groq, gemini, huggingface, claude, claude-opus, openrouter, deepseek, openai, ollama, auto]
+          default: groq
+        language:
+          type: string
+          enum: [tr, en]
+          default: en
+        contextRules:
+          type: string
+          description: Domain kuralları (opsiyonel)
+        openRouterModel:
+          type: string
+          description: OpenRouter model id (örn. anthropic/claude-3.5-sonnet)
+
+    PromptResponse:
+      type: object
+      properties:
+        masterPrompt: { type: string }
+        reasoning: { type: string }
+        detectedFramework: { type: string }
+        detectedDomain: { type: string }
+        groundingSources:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              uri: { type: string }
+
+    SavePromptRequest:
+      type: object
+      required: [id, version, masterPrompt]
+      properties:
+        id: { type: string }
+        version: { type: string }
+        name: { type: string }
+        masterPrompt: { type: string }
+        reasoning: { type: string }
+        meta:
+          type: object
+          properties:
+            intent: { type: string }
+            framework: { type: string }
+            domainId: { type: string }
+            provider: { type: string }
+            language: { type: string }
+
+    StoredPrompt:
+      type: object
+      properties:
+        id: { type: string }
+        version: { type: string }
+        name: { type: string }
+        masterPrompt: { type: string }
+        reasoning: { type: string }
+        meta: { type: object }
+        createdAt: { type: string, format: date-time }
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        code: { type: string }
+        retryAfter: { type: integer, description: 429 için saniye }

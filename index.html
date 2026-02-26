@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Reasoning | Meta-Prompt Architect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              cyber: {
+                black: '#121212', // Deep Charcoal
+                dark: '#0a0a0f',
+                gray: '#1e1e24', // Slate Gray
+                border: '#2a2a35',
+                primary: '#00E5FF', // Electric Cyan
+                secondary: '#ff003c',
+                accent: '#7000ff',
+                success: '#00ff9f',
+              }
+            },
+            boxShadow: {
+              'glow-primary': '0 0 25px rgba(0, 229, 255, 0.6)',
+              'glow-primary-soft': '0 0 15px rgba(0, 229, 255, 0.15)',
+              'glow-primary-subtle': '0 0 10px rgba(0, 229, 255, 0.08)',
+              'glass': '0 8px 32px rgba(0, 0, 0, 0.3)',
+            },
+            backgroundImage: {
+              'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css">
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root">
+      <div data-loading="true" style="min-height:100vh;background:#121212;color:#00E5FF;padding:2rem;font-family:monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;">
+        <p style="margin:0;">Yükleniyor…</p>
+        <div style="width:24px;height:24px;border:2px solid #2a2a35;border-top-color:#00E5FF;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+      </div>
+    </div>
+    <!-- spin animation in styles.css -->
+    <script type="module" src="/src/index.tsx"></script>
+    <noscript>
+      <div style="min-height:100vh;background:#121212;color:#00E5FF;padding:2rem;font-family:monospace;">
+        <p>JavaScript kapalı. Uygulama çalışması için JavaScript gerekir.</p>
+      </div>
+    </noscript>
+    <script>
+      setTimeout(function(){
+        var r = document.getElementById('root');
+        var first = r && r.firstElementChild;
+        var stillLoading = first && first.getAttribute('data-loading') === 'true';
+        if (r && stillLoading) {
+          r.innerHTML = '<div style="min-height:100vh;background:#121212;color:#00E5FF;padding:2rem;font-family:monospace;"><p style="margin:0 0 0.5rem 0;">Uygulama yüklenemedi.</p><p style="color:#94a3b8;font-size:0.875rem;">Terminalde: <code style="background:#0a0a0f;padding:2px 6px;">npm run dev</code> çalıştırıp tarayıcıda http://localhost:3000 adresini açın.</p></div>';
+        }
+      }, 12000);
+    </script>
+  </body>
+</html>

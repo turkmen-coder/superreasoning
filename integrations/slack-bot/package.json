@@ -1,0 +1,37 @@
+{
+  "name": "super-reasoning-slack-bot",
+  "version": "1.0.0",
+  "description": "Super Reasoning Slack Bot for prompt engineering and collaboration",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "deploy": "serverless deploy"
+  },
+  "dependencies": {
+    "@slack/web-api": "^6.9.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "serverless": "^3.38.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/super-reasoning/slack-bot.git"
+  },
+  "keywords": [
+    "slack",
+    "bot",
+    "ai",
+    "prompt",
+    "engineering",
+    "collaboration"
+  ],
+  "author": "Super Reasoning Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

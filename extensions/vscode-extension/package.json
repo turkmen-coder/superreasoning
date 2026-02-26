@@ -1,0 +1,125 @@
+{
+  "name": "super-reasoning-vscode",
+  "displayName": "Super Reasoning",
+  "description": "AI-powered prompt engineering and collaboration platform",
+  "version": "1.0.0",
+  "publisher": "SuperReasoning",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Snippets",
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "superReasoning.generatePrompt",
+        "title": "Generate Prompt",
+        "category": "Super Reasoning"
+      },
+      {
+        "command": "superReasoning.openDashboard",
+        "title": "Open Dashboard",
+        "category": "Super Reasoning"
+      },
+      {
+        "command": "superReasoning.openCollaboration",
+        "title": "Open Collaboration",
+        "category": "Super Reasoning"
+      },
+      {
+        "command": "superReasoning.openAnalytics",
+        "title": "Open Analytics",
+        "category": "Super Reasoning"
+      },
+      {
+        "command": "superReasoning.openEvolution",
+        "title": "Open Evolution Engine",
+        "category": "Super Reasoning"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "superReasoning.generatePrompt",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      },
+      {
+        "command": "superReasoning.openDashboard",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d"
+      }
+    ],
+    "configuration": {
+      "title": "Super Reasoning",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "default": "http://localhost:4000",
+          "description": "Super Reasoning API URL"
+        },
+        "apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API Key for authentication"
+        },
+        "defaultFramework": {
+          "type": "string",
+          "enum": ["AUTO", "KERNEL", "CO_STAR", "RISEN", "RTF", "BAB", "TAG", "CARE"],
+          "default": "AUTO",
+          "description": "Default framework for prompt generation"
+        },
+        "defaultProvider": {
+          "type": "string",
+          "enum": ["auto", "groq", "gemini", "openai", "claude", "deepseek", "openrouter"],
+          "default": "auto",
+          "description": "Default AI provider"
+        },
+        "enableRealTimeCollaboration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time collaboration features"
+        },
+        "showInlinePreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline prompt preview"
+        }
+      }
+    },
+    "snippets": [
+      {
+        "language": "prompt",
+        "path": "./snippets/prompt.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "webpack --mode production --devtool hidden-source-map",
+    "watch": "webpack --watch --devtool hidden-source-map"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^18.0.0",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.9.4",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/super-reasoning/vscode-extension.git"
+  },
+  "homepage": "https://super-reasoning.com",
+  "bugs": {
+    "url": "https://github.com/super-reasoning/vscode-extension/issues"
+  },
+  "license": "MIT"
+}

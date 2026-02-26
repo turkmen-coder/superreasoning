@@ -1,0 +1,6 @@
+semantic-kernel[openai]>=1.20.0
+fastapi>=0.115.0
+uvicorn>=0.34.0
+python-dotenv>=1.0.0
+numpy>=1.26.0
+zvec>=0.1.0

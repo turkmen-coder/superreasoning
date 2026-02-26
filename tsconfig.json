@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "vite/client",
+      "vitest/globals"
+    ],
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-deploy",
+    "dist-prod",
+    "dist2",
+    "langextract-main",
+    "semantic-kernel-main",
+    "claude-agent-sdk-python-main",
+    "zvec-main",
+    "sk-service",
+    "system_prompts_leaks-main",
+    "agent",
+    "archive (4)",
+    "archive (5)",
+    "composio-next",
+    "ragflow-main",
+    "extensions",
+    "cosmic-flow 2",
+    "Prompt-Engineering-Guide-main"
+  ]
+}

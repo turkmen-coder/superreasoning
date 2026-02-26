@@ -1,0 +1,107 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.env.*.local
+
+# Prompt-as-Code store (opsiyonel; versionlamak için .prompts/ commit edilebilir)
+# .prompts
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Auto-generated entries
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+._*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Sensitive files (auto-detected)
+.env
+.env.example
+node_modules
+
+# External/unrelated projects (silindi, tekrar ekleme)
+claude-agent-sdk-python-main/
+langextract-main/
+semantic-kernel-main/
+agent/
+ragflow-main/
+composio-next/
+Prompt-Engineering-Guide-main/
+zvec-main/
+pyparsing-master/
+system-prompts-and-models-of-ai-tools-main/
+system_prompts_leaks-main/
+lightfm-master/
+RAG_Techniques-main/
+python-ftfy-main/
+SUPER REASONİNG/
+cosmic-flow 2/
+stitch/
+prompt.md
+
+# Archive datasets
+archive*/
+
+# Deploy artifacts
+dist-deploy/
+dist-prod/
+dist2/
+
+# IDE/tool configs
+.cursor/
+.claude/
+
+# Python cache
+__pycache__/
+*.pyc
+deploy-full.zip
+super-reasoning-deploy.zip
+train_v2_drcat_02.csv

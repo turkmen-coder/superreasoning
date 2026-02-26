@@ -1,0 +1,16 @@
+# Hostinger VPS / MCP deploy — tek servis (API + frontend)
+# Port 4000; reverse proxy veya firewall ile 80/443 yönlendirin.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - SR_API_PORT=4000
+    restart: unless-stopped
+    # .env ile: env_file: [.env]
+    # Hostinger ortam değişkenleri panelden verilebilir

@@ -1,0 +1,17 @@
+# Super Reasoning — Production (Hostinger VPS / MCP)
+# Hostinger repo clone sonrası: docker compose up -d
+# Port 4000; Nginx veya firewall ile 80/443 yönlendirilebilir.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - SR_API_PORT=4000
+    restart: unless-stopped

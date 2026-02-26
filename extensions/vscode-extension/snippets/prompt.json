@@ -1,0 +1,30 @@
+{
+  "Super Reasoning Master Prompt": {
+    "prefix": "sr-master",
+    "body": [
+      "## SYSTEM",
+      "$1",
+      "",
+      "## DEVELOPER",
+      "$2",
+      "",
+      "## USER",
+      "$3"
+    ],
+    "description": "Insert a structured master prompt template (SYSTEM/DEVELOPER/USER)"
+  },
+  "Super Reasoning RTF": {
+    "prefix": "sr-rtf",
+    "body": [
+      "Role:",
+      "$1",
+      "",
+      "Task:",
+      "$2",
+      "",
+      "Format:",
+      "$3"
+    ],
+    "description": "Insert RTF framework template"
+  }
+}

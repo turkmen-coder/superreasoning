@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/banner.png" alt="SuperReasoning UI" width="100%" />
+
 # ⚡ SuperReasoning
 
 **AI Mühendisliği & Prompt Yönetim Platformu**

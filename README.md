@@ -1,196 +1,218 @@
-<div align="center">
+# Super Reasoning
 
-<img src="assets/banner.png" alt="SuperReasoning UI" width="100%" />
+Deterministic AI Engineering Platform -- build high-quality master prompts using 7 strategic frameworks including KERNEL, CO-STAR, and RISEN (PEA-2026 + MPA v2.2 + SP-A1 + S).
 
-# ⚡ SuperReasoning
+## Overview
 
-**AI Mühendisliği & Prompt Yönetim Platformu**
+Super Reasoning is a full-stack SaaS platform that treats prompts as code. It lets you version, optimize, and CI/CD-integrate your prompts through a unified API. The platform supports multiple LLM providers (Groq, Gemini, Hugging Face, Claude, OpenRouter, DeepSeek, OpenAI) and provides tooling for prompt engineering at scale.
 
-[![Version](https://img.shields.io/badge/version-3.2.0-06e8f9?style=flat-square&labelColor=050505)](https://github.com/turkmen-coder/superreasoning)
-[![License](https://img.shields.io/badge/license-MIT-9d00ff?style=flat-square&labelColor=050505)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square&labelColor=050505)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&labelColor=050505)](https://react.dev/)
+### Key Features
 
-*Profesyonel prompt mühendisliği için kapsamlı platform — 30+ framework, multi-provider AI, analitik ve çok daha fazlası.*
+- **Multi-provider prompt generation** -- route requests across Groq, Gemini, Claude, OpenAI, OpenRouter, DeepSeek, and Hugging Face
+- **Prompt-as-Code API** -- version, store, and manage prompts with full CRUD and history tracking
+- **Genetic algorithm optimization** -- evolve prompts using tournament selection, crossover, and mutation
+- **IR (Intermediate Representation) pipeline** -- extract structured intent from raw prompts and compile back to optimized text
+- **Standards compliance dashboard** -- real-time monitoring for WCAG 2.1 AA, OWASP Top 10, Core Web Vitals, and GDPR
+- **Multi-tenant architecture** -- organization-based isolation with role-based access (owner/admin/member)
+- **BYOK (Bring Your Own Key)** -- users can supply their own API keys for any supported provider
+- **Semantic caching** -- vector-similarity-based cache to reduce redundant LLM calls
+- **RAG pipeline** -- pgvector-powered retrieval-augmented generation with hybrid search
+- **Judge ensemble** -- multi-model evaluation and scoring of generated prompts
+- **A/B testing** -- run controlled experiments across prompt variants
+- **Prompt linting** -- static analysis to catch injection risks, ambiguity, and anti-patterns
+- **OpenTelemetry tracing** -- distributed tracing and observability out of the box
+- **Stripe payment integration** -- subscription management with free/pro/team plans
+- **i18n support** -- Turkish and English localization
+- **VS Code extension** -- prompt snippets and tooling directly in your editor
 
-</div>
+## Architecture
 
----
+```
+Client (Vite/React)  -->  CDN (Vercel/Netlify)  -->  Express API (:4000)
+                                                        |
+                                          +-------------+-------------+
+                                          |             |             |
+                                     Auth/RBAC    Rate Limit    Generate Adapter
+                                                                     |
+                                                    +--------+-------+--------+
+                                                    |        |       |        |
+                                                  Groq    Gemini  Claude  OpenRouter ...
+                                                    
+PostgreSQL (Supabase) <-- Prompt Store / pgvector / RLS
+```
 
-## 🎯 Nedir?
+For detailed architecture diagrams, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-SuperReasoning; prompt tasarımını, testini, puanlamasını ve yönetimini tek bir platformda birleştiren bir AI mühendisliği aracıdır. Birden fazla AI sağlayıcısıyla çalışır, prompt kalitesini otomatik puanlar ve gelişmiş üretkenlik araçları sunar.
+## Quick Start
 
----
+### Prerequisites
 
-## ✨ Özellikler
+- Node.js >= 18
+- PostgreSQL (or a Supabase instance)
+- At least one LLM provider API key
 
-### 🧠 Prompt Üretimi
-| Özellik | Detay |
-|---|---|
-| **30+ Framework** | COT, REACT, RISEN, KERNEL, RTF, CO-STAR, TAG, BAB, CARE, APE, DSP, REWOO... |
-| **Multi-Provider** | OpenAI, Anthropic (Claude), Gemini, OpenRouter, Groq, DeepSeek, HuggingFace |
-| **Agent Modu** | Otomatik intent analizi, framework önerisi ve multi-step refinement |
-| **Sistem Promptu** | Özelleştirilebilir sistem promptu + hazır presetler |
-
-### 📊 Kalite & Analiz
-| Özellik | Detay |
-|---|---|
-| **Judge Panel** | Çok boyutlu otomatik puanlama (0-100) — Elite/Pro/Good/Basic sınıflandırma |
-| **A/B Diff Viewer** | İki prompt arası satır bazlı karşılaştırma |
-| **Prompt Turnuvası** | COT vs REACT vs RISEN — kazananı otomatik seç |
-| **Analitik Dashboard** | Kullanım istatistikleri, domain dağılımı, skor trend |
-
-### 🔧 Üretkenlik Araçları
-| Özellik | Detay |
-|---|---|
-| **⌨️ Command Palette** | `Cmd+K` — her aksiyona anında eriş |
-| **📦 Batch İşlem** | Çok satır intent → toplu üretim → JSON/CSV export |
-| **🎯 Few-Shot Üreteci** | Prompt için otomatik 3 örnek INPUT/OUTPUT üretimi |
-| **🏆 Prompt Turnuvası** | 3 framework yarıştır, kazananı AI puan versin |
-| **🔗 Webhook/Zapier** | Generate/copy/export olaylarında otomatik trigger |
-| **🎤 Ses Girişi** | Web Speech API ile Türkçe/İngilizce ses ile intent yaz |
-
-### 🎨 Arayüz
-| Özellik | Detay |
-|---|---|
-| **⬜ Split View** | Input solda, result sağda — geniş ekran verimliliği |
-| **🌙☀️ Dark/Light Mode** | Tek tıkla tema geçişi |
-| **🎨 Tema Rengi** | 6 preset accent rengi + custom color picker |
-| **🗂️ Sidebar Collapse** | İkon-only daralt, ekran alanını artır |
-| **🖱️ Sağ Tık Menüsü** | Result üzerinde kopyala/AI'da aç/diff seçenekleri |
-
-### 🤖 AI'da Aç
-Prompt üretildiğinde tek tıkla 8 farklı AI platformuna gönder:
-
-> **ChatGPT** · **Claude** · **Gemini** · **Perplexity** · **Phind** · **DeepSeek** · **Le Chat** · **Grok**
-
-### 📚 Template Kütüphanesi
-- **30 hazır şablon** (Frontend, Backend, DevOps, ML, Security, Blockchain, Healthcare...)
-- Kart grid + domain emoji ikonları
-- Fuzzy arama ve kategori filtresi
-- Hover preview pane
-- ⭐ Favoriler ve 📋 Son kullanılanlar (localStorage)
-
-### 🔒 Güvenlik
-- **Prompt Injection Tarayıcı** — "ignore previous instructions", jailbreak kalıplarını tespit
-- **Token Bütçe Göstergesi** — provider bazlı limit takibi
-- OWASP uyumlu API tasarımı
-
----
-
-## 🚀 Kurulum
-
-### Gereksinimler
-- Node.js 18+
-- npm veya yarn
-
-### Adımlar
+### Installation
 
 ```bash
-# Klonla
+# Clone the repository
 git clone https://github.com/turkmen-coder/superreasoning.git
 cd superreasoning
 
-# Bağımlılıkları yükle
+# Install dependencies
 npm install
+```
 
-# Ortam dosyasını hazırla
-cp .env.example .env
-# .env dosyasına API key'lerini ekle
+### Environment Variables
 
-# Geliştirme sunucusunu başlat
+Create a `.env` file in the project root. Minimal example:
+
+```env
+# LLM Provider keys (at least one required)
+VITE_GROQ_API_KEY=your-groq-key
+GEMINI_API_KEY=your-gemini-key
+ANTHROPIC_API_KEY=your-anthropic-key
+OPENROUTER_API_KEY=your-openrouter-key
+VITE_HUGGING_FACE_HUB_TOKEN=your-hf-token
+
+# API authentication
+API_KEYS=your-api-key-here
+
+# Database (optional -- falls back to file store)
+DATABASE_URL=postgresql://user:pass@localhost:5432/superreasoning
+SR_USE_DB_STORE=true
+SR_DEFAULT_ORG_ID=<org-uuid>
+```
+
+See [docs/KURULUM.md](docs/KURULUM.md) for the full list of environment variables and setup instructions.
+
+### Database Setup
+
+```bash
+# Apply schema
+psql -U user -d superreasoning -f server/db/schema.sql
+psql -U user -d superreasoning -f server/db/schema-rls.sql
+
+# Or use the automated setup script
+npm run db:setup
+
+# Seed default organization
+npm run db:seed
+```
+
+### Running
+
+```bash
+# Start the API server
+npm run api
+
+# Start the frontend dev server
+npm run dev
+
+# Or run both concurrently
 npm run dev:all
 ```
 
-Uygulama açılacak adresler:
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:4000
+The API runs on `http://localhost:4000` and the frontend on `http://localhost:5173` by default.
 
----
+## API
 
-## ⚙️ Ortam Değişkenleri
+The API follows REST conventions under `/v1` (aliased as `/api/v1`). Authentication is via `x-api-key` header.
 
-`.env` dosyasına ekleyin:
+Key endpoints:
 
-```env
-# OpenAI
-VITE_OPENAI_API_KEY=sk-...
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/v1/auth/validate` | Validate API key |
+| POST | `/v1/generate` | Generate a master prompt |
+| GET | `/v1/prompts` | List stored prompts |
+| POST | `/v1/prompts` | Create a prompt |
+| PUT | `/v1/prompts/:id` | Update a prompt |
+| DELETE | `/v1/prompts/:id` | Delete a prompt |
 
-# Anthropic (Claude)
-VITE_ANTHROPIC_API_KEY=sk-ant-...
+Full API specification is available in [openapi.yaml](openapi.yaml).
 
-# Google Gemini
-VITE_GEMINI_API_KEY=...
+## Scripts
 
-# OpenRouter (opsiyonel — 100+ model)
-VITE_OPENROUTER_API_KEY=...
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server |
+| `npm run api` | Start Express API server |
+| `npm run dev:all` | Run frontend + API concurrently |
+| `npm run build` | Production build |
+| `npm run test` | Run tests (Vitest, watch mode) |
+| `npm run test:run` | Run tests once |
+| `npm run lint` | ESLint check |
+| `npm run lint:fix` | ESLint auto-fix |
+| `npm run format` | Prettier format |
+| `npm run typecheck` | TypeScript type check |
+| `npm run db:setup` | Automated database setup |
+| `npm run db:seed` | Seed default organization |
+| `npm run import:all-datasets` | Import all prompt datasets |
+| `npm run regression` | Run prompt regression tests |
 
-# Groq (opsiyonel — hızlı inference)
-VITE_GROQ_API_KEY=...
-```
-
----
-
-## 📁 Proje Yapısı
+## Project Structure
 
 ```
 superreasoning/
-├── src/
-│   ├── App.tsx                    # Ana uygulama
-│   ├── components/                # UI bileşenleri (40+)
-│   │   ├── CommandPalette.tsx     # Cmd+K komut paleti
-│   │   ├── BatchProcessor.tsx     # Toplu işlem
-│   │   ├── FewShotGenerator.tsx   # Few-shot örnek üreteci
-│   │   ├── PromptTournament.tsx   # Framework yarışması
-│   │   ├── TemplateSelector.tsx   # 30 şablon kütüphanesi
-│   │   ├── ThemeCustomizer.tsx    # Tema rengi
-│   │   └── ...
-│   ├── hooks/                     # Custom React hooks
-│   └── types.ts                   # TypeScript tipleri
-├── services/                      # AI provider servisleri
-│   ├── unifiedProviderService.ts  # Tek API arayüzü
-│   ├── judgeEnsemble.ts           # Otomatik puanlama
-│   └── orchestrator.ts            # Workflow motor
-├── server/                        # Express.js backend
-├── data/
-│   └── templates.ts               # 30 prompt şablonu
-└── components/                    # Paylaşılan bileşenler
-    └── FrameworkSelector.tsx
+  src/                  # React frontend (Vite + Tailwind)
+  server/               # Express API backend
+    db/                 # Schema, migrations, RLS policies
+    lib/                # Core libraries (embeddings, vector store, enrichment, compilers)
+    routes/             # API route handlers
+    store/              # Prompt storage layer (file + DB)
+    scripts/            # CLI scripts (import, migrate, seed)
+  services/             # Shared business logic (providers, optimizer, genetic, RAG, etc.)
+  components/           # Shared UI components
+  tests/                # Test suites (unit, API security, compliance, performance)
+  docs/                 # Architecture, setup, and roadmap documentation
+  extensions/           # VS Code extension
+  integrations/         # Slack bot and other integrations
+  sdk/                  # TypeScript client SDK
+  sk-service/           # Python RAG pipeline (Semantic Kernel)
+  prompts/              # Prompt template files
+  deploy/               # Deployment configs
 ```
 
----
+## Testing
 
-## 🛠️ Teknik Yığın
+```bash
+# Run all tests
+npm run test:run
 
-| Katman | Teknoloji |
-|---|---|
-| **Frontend** | React 18, TypeScript, Vite, TailwindCSS |
-| **Backend** | Node.js, Express, tsx |
-| **State** | useReducer + Context |
-| **Depolama** | localStorage + Supabase (opsiyonel) |
-| **Vector DB** | In-memory (zvec fallback) |
-| **Gerçek zamanlı** | WebSocket (işbirlikçi düzenleme) |
+# Run tests in watch mode
+npm run test
 
----
+# Run with UI
+npx vitest --ui
+```
 
-## ⌨️ Klavye Kısayolları
+Tests cover prompt linting, semantic caching, contract validation, i18n, IR extraction, budget optimization, security, and standards compliance.
 
-| Kısayol | Aksiyon |
-|---|---|
-| `Ctrl/Cmd + Enter` | Prompt üret |
-| `Ctrl/Cmd + K` | Command Palette aç |
-| `1-7` | Sayfa geçişi |
-| `?` | Kısayol listesi |
+## Documentation
 
----
+Detailed documentation lives in the [docs/](docs/) directory:
 
-## 📄 Lisans
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) -- system architecture and diagrams
+- [KURULUM.md](docs/KURULUM.md) -- full setup guide
+- [MULTI_TENANCY_AND_KEYS.md](docs/MULTI_TENANCY_AND_KEYS.md) -- multi-tenant design and key management
+- [PAYMENT_INTEGRATION.md](docs/PAYMENT_INTEGRATION.md) -- Stripe/iyzico payment setup
+- [SECURITY_TEST_PLAN.md](docs/SECURITY_TEST_PLAN.md) -- security testing plan
+- [IR_PIPELINE.md](docs/IR_PIPELINE.md) -- intermediate representation pipeline
+- [OPTIMIZATION_ARCHITECTURE.md](docs/OPTIMIZATION_ARCHITECTURE.md) -- prompt optimization architecture
+- [ROADMAP_V32.md](docs/ROADMAP_V32.md) -- version 3.2 roadmap
 
-MIT © [turkmen-coder](https://github.com/turkmen-coder)
+## Tech Stack
 
----
+- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS
+- **Backend**: Express 5, TypeScript, tsx
+- **Database**: PostgreSQL, Supabase, pgvector
+- **LLM Providers**: Groq, Gemini, Claude, OpenAI, OpenRouter, DeepSeek, Hugging Face
+- **Testing**: Vitest, Supertest
+- **Observability**: OpenTelemetry
+- **Payments**: Stripe
+- **Validation**: Zod
+- **Linting**: ESLint, Prettier
 
-<div align="center">
-  <sub>⚡ SuperReasoning — Prompt mühendisliğini bir üst seviyeye taşı</sub>
-</div>
+## License
+
+Proprietary. See [openapi.yaml](openapi.yaml) for license information.
